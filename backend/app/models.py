@@ -22,11 +22,6 @@ class User(db.Model):
 
     def __repr__(self):
         return f"<User {self.email}>"
-
-
-# ======================================================
-# PROJECT
-# ======================================================
 class Project(db.Model):
     __tablename__ = "projects"
 

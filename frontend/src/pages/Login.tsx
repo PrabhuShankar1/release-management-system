@@ -1,195 +1,267 @@
 import { useState } from "react"
 import {
-  TextField,
-  Button,
-  Container,
-  Box,
-  Paper,
-  Typography,
-  Divider,
-  InputAdornment,
-  IconButton,
   Alert,
-  Snackbar,
   Avatar,
-  Fade
+  Box,
+  Button,
+  Chip,
+  CircularProgress,
+  Divider,
+  IconButton,
+  InputAdornment,
+  Link,
+  Paper,
+  Stack,
+  TextField,
+  Typography
 } from "@mui/material"
-
 import {
-  Email as EmailIcon,
-  Lock as LockIcon,
+  EmailRounded,
+  LockRounded,
+  RocketLaunchRounded,
+  TimelineRounded,
   Visibility,
-  VisibilityOff,
-  Login as LoginIcon,
-  Google as GoogleIcon
+  VisibilityOff
 } from "@mui/icons-material"
-
-import { styled } from "@mui/material/styles"
-import { api } from "../api"
-import { login } from "../auth"
 import { useNavigate } from "react-router-dom"
-
-
-/* ===============================
-   Styles
-================================ */
-const StyledPaper = styled(Paper)(({ theme }) => ({
-  padding: theme.spacing(5),
-  borderRadius: 16,
-  backdropFilter: "blur(10px)",
-  background: "rgba(255,255,255,0.95)"
-}))
-
-const GradientButton = styled(Button)({
-  background: "linear-gradient(90deg,#667eea,#764ba2)",
-  borderRadius: 12,
-  fontWeight: 600,
-  textTransform: "none"
-})
-
+import axios from "axios"
+import { useAuth } from "../context/AuthContext"
 
 export default function Login() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
+  const { login } = useAuth()
+  const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
-  const [success, setSuccess] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
 
-  const nav = useNavigate()
+  const handleLogin = async () => {
+    if (!email || !password) {
+      setError("Please fill in all fields")
+      return
+    }
 
-
-  /* ===============================
-     NORMAL LOGIN
-  ================================= */
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
+    setLoading(true)
+    setError("")
 
     try {
-      setLoading(true)
-      setError("")
-
-      const res = await api.post("/login", { email, password })
+      const res = await axios.post("http://127.0.0.1:5000/api/login", {
+        email,
+        password
+      })
 
       login(res.data.user)
-
-      setSuccess(true)
-      setTimeout(() => nav("/"), 1000)
-
+      navigate("/tasks")
     } catch (err: any) {
-      setError(err.response?.data?.message || "Login failed")
+      const message = err.response?.data?.message || "Login failed. Please try again."
+      setError(message)
     } finally {
       setLoading(false)
     }
   }
 
-
-  /* ===============================
-     GOOGLE LOGIN  ⭐ ADDED BACK
-  ================================= */
-  const handleGoogleLogin = () => {
-    // redirect to Flask OAuth route
-    window.location.href = "http://127.0.0.1:5000/auth/google"
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault()
+    handleLogin()
   }
-
 
   return (
     <Box
       sx={{
         minHeight: "100vh",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        background: "linear-gradient(135deg,#667eea,#764ba2)"
+        display: "grid",
+        gridTemplateColumns: { xs: "1fr", lg: "1.15fr 0.85fr" },
+        background:
+          "radial-gradient(circle at top left, rgba(198,124,78,0.16), transparent 28%), radial-gradient(circle at bottom right, rgba(31,77,71,0.14), transparent 24%), #f4efe7"
       }}
     >
-      <Container maxWidth="sm">
-        <Fade in>
-          <StyledPaper>
-
-            <Box sx={{ display: "flex", justifyContent: "center", mb: 3 }}>
-              <Avatar sx={{ bgcolor: "#667eea", width: 60, height: 60 }}>
-                <LoginIcon />
-              </Avatar>
-            </Box>
-
-            <Typography variant="h5" align="center" mb={3}>
-              Sign In
+      <Box
+        sx={{
+          display: { xs: "none", lg: "flex" },
+          alignItems: "center",
+          p: 6
+        }}
+      >
+        <Paper
+          sx={{
+            p: 5,
+            borderRadius: 8,
+            width: "100%",
+            minHeight: 560,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+            color: "white",
+            position: "relative",
+            overflow: "hidden",
+            background:
+              "linear-gradient(135deg, rgba(23,54,49,0.98) 0%, rgba(31,77,71,0.96) 52%, rgba(198,124,78,0.92) 100%)"
+          }}
+        >
+          <Box
+            sx={{
+              position: "absolute",
+              inset: 0,
+              background:
+                "radial-gradient(circle at 20% 20%, rgba(255,255,255,0.18), transparent 22%), radial-gradient(circle at 85% 15%, rgba(255,255,255,0.12), transparent 18%)"
+            }}
+          />
+          <Box sx={{ position: "relative" }}>
+            <Chip
+              label="Release operations"
+              sx={{ bgcolor: "rgba(255,255,255,0.12)", color: "white", mb: 3 }}
+            />
+            <Typography variant="h3" sx={{ maxWidth: 560 }}>
+              Elegant release management starts with a calmer workspace.
             </Typography>
+            <Typography sx={{ mt: 2, maxWidth: 540, color: "rgba(255,255,255,0.8)", lineHeight: 1.8 }}>
+              Organize projects, track versions, and coordinate delivery work from a UI that feels more polished and intentional.
+            </Typography>
+          </Box>
 
-            <Box
-              component="form"
-              onSubmit={handleLogin}
-              sx={{ display: "flex", flexDirection: "column", gap: 2 }}
-            >
+          <Stack
+            direction="row"
+            spacing={2}
+            useFlexGap
+            flexWrap="wrap"
+            sx={{ position: "relative" }}
+          >
+            {[
+              { title: "Project clarity", icon: <RocketLaunchRounded /> },
+              { title: "Release rhythm", icon: <TimelineRounded /> },
+              { title: "Team coordination", icon: <LockRounded /> }
+            ].map((item) => (
+              <Paper
+                key={item.title}
+                sx={{
+                  px: 2.5,
+                  py: 2,
+                  borderRadius: 5,
+                  minWidth: 180,
+                  bgcolor: "rgba(255,255,255,0.1)",
+                  color: "white",
+                  border: "1px solid rgba(255,255,255,0.1)"
+                }}
+              >
+                <Stack direction="row" spacing={1.5} alignItems="center">
+                  <Avatar sx={{ bgcolor: "rgba(255,255,255,0.14)", color: "white", width: 40, height: 40 }}>
+                    {item.icon}
+                  </Avatar>
+                  <Typography fontWeight={700}>{item.title}</Typography>
+                </Stack>
+              </Paper>
+            ))}
+          </Stack>
+        </Paper>
+      </Box>
 
-              {/* Email */}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          p: { xs: 2, sm: 4, lg: 6 }
+        }}
+      >
+        <Paper
+          elevation={0}
+          sx={{
+            width: "100%",
+            maxWidth: 470,
+            p: { xs: 3, sm: 4.5 },
+            borderRadius: 8,
+            border: "1px solid rgba(31, 77, 71, 0.08)",
+            boxShadow: "0 24px 60px rgba(31, 41, 51, 0.12)",
+            background: "linear-gradient(180deg, rgba(255,253,249,0.98) 0%, rgba(255,255,255,0.98) 100%)"
+          }}
+        >
+          <Avatar
+            sx={{
+              width: 64,
+              height: 64,
+              mb: 2.5,
+              bgcolor: "secondary.main",
+              color: "white",
+              boxShadow: "0 18px 30px rgba(198, 124, 78, 0.28)"
+            }}
+          >
+            <RocketLaunchRounded />
+          </Avatar>
+
+          <Typography variant="h4" sx={{ maxWidth: 320 }}>
+            Welcome back
+          </Typography>
+          <Typography color="text.secondary" sx={{ mt: 1, mb: 3 }}>
+            Sign in to continue into the refreshed release workspace.
+          </Typography>
+
+          {error && <Alert severity="error" sx={{ mb: 2.5 }}>{error}</Alert>}
+
+          <Box component="form" onSubmit={handleSubmit}>
+            <Stack spacing={2}>
               <TextField
-                label="Email"
+                fullWidth
+                label="Email address"
+                type="email"
                 value={email}
-                onChange={e => setEmail(e.target.value)}
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="you@company.com"
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <EmailIcon />
+                      <EmailRounded color="action" />
                     </InputAdornment>
                   )
                 }}
               />
 
-              {/* Password */}
               <TextField
+                fullWidth
                 label="Password"
                 type={showPassword ? "text" : "password"}
                 value={password}
-                onChange={e => setPassword(e.target.value)}
+                onChange={(event) => setPassword(event.target.value)}
+                placeholder="Enter your password"
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <LockIcon />
+                      <LockRounded color="action" />
                     </InputAdornment>
                   ),
                   endAdornment: (
-                    <IconButton onClick={() => setShowPassword(!showPassword)}>
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
+                    <InputAdornment position="end">
+                      <IconButton onClick={() => setShowPassword((current) => !current)} edge="end">
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
                   )
                 }}
               />
 
-              <GradientButton type="submit" disabled={loading}>
-                {loading ? "Signing..." : "Login"}
-              </GradientButton>
+              <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+                <Link href="#" underline="hover" sx={{ color: "primary.main" }}>
+                  Forgot password?
+                </Link>
+              </Box>
 
-              <Divider sx={{ my: 2 }}>OR</Divider>
-
-              {/* ⭐ GOOGLE BUTTON */}
-              <Button
-                variant="outlined"
-                startIcon={<GoogleIcon />}
-                onClick={handleGoogleLogin}
-                sx={{
-                  borderRadius: 3,
-                  py: 1.2,
-                  textTransform: "none",
-                  fontWeight: 600
-                }}
-              >
-                Sign in with Google
+              <Button type="submit" variant="contained" size="large" fullWidth disabled={loading} sx={{ py: 1.5 }}>
+                {loading ? <CircularProgress size={24} sx={{ color: "white" }} /> : "Sign in"}
               </Button>
+            </Stack>
+          </Box>
 
-            </Box>
-          </StyledPaper>
-        </Fade>
-      </Container>
+          <Divider sx={{ my: 3 }}>
+            <Typography variant="caption" color="text.secondary">
+              Secure access
+            </Typography>
+          </Divider>
 
-      <Snackbar open={success} autoHideDuration={1500}>
-        <Alert severity="success">Login successful!</Alert>
-      </Snackbar>
-
-      <Snackbar open={!!error} autoHideDuration={4000} onClose={() => setError("")}>
-        <Alert severity="error">{error}</Alert>
-      </Snackbar>
+          <Typography color="text.secondary">
+            Need help? Contact your administrator for account setup or password recovery.
+          </Typography>
+        </Paper>
+      </Box>
     </Box>
   )
 }
