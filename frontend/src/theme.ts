@@ -39,53 +39,53 @@ const theme = createTheme({
   typography: {
     fontFamily: '"Aptos", "Trebuchet MS", "Segoe UI", sans-serif',
     body1: {
-      fontSize: "0.98rem",
+      fontSize: "1rem",
       lineHeight: 1.65
     },
     body2: {
-      fontSize: "0.9rem",
+      fontSize: "0.94rem",
       lineHeight: 1.6
     },
     overline: {
-      fontSize: "0.72rem",
+      fontSize: "0.78rem",
       fontWeight: 700,
-      letterSpacing: "0.14em",
+      letterSpacing: "0.1em",
       lineHeight: 1.4
     },
     h3: {
-      fontSize: "2.35rem",
-      fontWeight: 800,
-      letterSpacing: "-0.03em",
-      lineHeight: 1.05
-    },
-    h4: {
-      fontSize: "1.9rem",
+      fontSize: "2rem",
       fontWeight: 800,
       letterSpacing: "-0.03em",
       lineHeight: 1.1
     },
-    h5: {
-      fontSize: "1.35rem",
-      fontWeight: 700,
+    h4: {
+      fontSize: "1.6rem",
+      fontWeight: 800,
+      letterSpacing: "-0.02em",
       lineHeight: 1.15
     },
-    h6: {
-      fontSize: "1.05rem",
+    h5: {
+      fontSize: "1.2rem",
       fontWeight: 700,
       lineHeight: 1.2
     },
-    subtitle1: {
+    h6: {
       fontSize: "1rem",
+      fontWeight: 700,
+      lineHeight: 1.25
+    },
+    subtitle1: {
+      fontSize: "0.98rem",
       fontWeight: 600,
       lineHeight: 1.45
     },
     subtitle2: {
-      fontSize: "0.92rem",
+      fontSize: "0.95rem",
       fontWeight: 600,
       lineHeight: 1.45
     },
     button: {
-      fontSize: "0.95rem",
+      fontSize: "0.92rem",
       fontWeight: 700,
       textTransform: "none"
     }
@@ -115,9 +115,9 @@ const theme = createTheme({
           borderColor: alpha("#1f4d47", 0.08)
         },
         head: {
-          fontSize: "0.78rem",
+          fontSize: "0.82rem",
           textTransform: "uppercase",
-          letterSpacing: "0.08em"
+          letterSpacing: "0.06em"
         }
       }
     },
@@ -129,7 +129,7 @@ const theme = createTheme({
         root: {
           borderRadius: 999,
           paddingInline: 20,
-          minHeight: 42
+          minHeight: 40
         },
         containedPrimary: {
           background: "linear-gradient(135deg, #1f4d47 0%, #2b6a62 100%)",
@@ -177,7 +177,8 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           borderRadius: 999,
-          fontWeight: 700
+          fontWeight: 700,
+          fontSize: "0.86rem"
         }
       }
     }

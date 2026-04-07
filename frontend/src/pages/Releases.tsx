@@ -1,93 +1,51 @@
 import { useEffect, useMemo, useState } from "react"
-import { alpha } from "@mui/material/styles"
 import { api } from "../api"
 import {
-  Avatar,
   Box,
-  Button,
-  Chip,
   CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  FormControl,
-  InputAdornment,
-  InputLabel,
-  MenuItem,
   Paper,
-  Select,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  TextField,
   Typography
 } from "@mui/material"
-import {
-  AddRounded,
-  ArrowBackRounded,
-  ArrowForwardRounded,
-  DeleteOutlineRounded,
-  EditRounded,
-  LocalOfferRounded,
-  SearchRounded
-} from "@mui/icons-material"
-import "./Releases.css"
 
-type Release = {
+type ApprovedRequest = {
   id: number
-  name: string
-  version: string
-  status: string
-  project_id: number
-  project_name?: string
+  reviewed_at?: string | null
 }
 
-type Project = {
-  id: number
-  name: string
+type MonthColumn = {
+  key: string
+  count: number
+  title: string
 }
 
-const statusTone: Record<string, string> = {
-  Completed: "#2f855a",
-  "In Progress": "#c98633",
-  Pending: "#2b6cb0",
-  Cancelled: "#c53030"
+type MonthBlock = {
+  label: string
+  columns: MonthColumn[][]
+}
+
+const monthLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+
+const toDayKey = (date: Date) => {
+  const month = `${date.getMonth() + 1}`.padStart(2, "0")
+  const day = `${date.getDate()}`.padStart(2, "0")
+  return `${date.getFullYear()}-${month}-${day}`
 }
 
 export default function Releases() {
-  const [rows, setRows] = useState<Release[]>([])
-  const [projects, setProjects] = useState<Project[]>([])
-  const [search, setSearch] = useState("")
-  const [page, setPage] = useState(0)
+  const [approvedRequests, setApprovedRequests] = useState<ApprovedRequest[]>([])
   const [loading, setLoading] = useState(true)
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const [editingRelease, setEditingRelease] = useState<Release | null>(null)
-  const [formData, setFormData] = useState({
-    name: "",
-    version: "",
-    status: "Pending",
-    project_id: ""
-  })
-
-  const pageSize = 5
 
   useEffect(() => {
-    load()
+    loadApprovedRequests()
   }, [])
 
-  const load = async () => {
+  const loadApprovedRequests = async () => {
     try {
       setLoading(true)
-      const [releasesRes, projectsRes] = await Promise.all([
-        api.get("/releases"),
-        api.get("/projects")
-      ])
-      setRows(releasesRes.data)
-      setProjects(projectsRes.data)
+      const response = await api.get("/tasks", { params: { status: "Approved" } })
+      setApprovedRequests(response.data)
     } catch (err) {
       console.error(err)
     } finally {
@@ -95,72 +53,79 @@ export default function Releases() {
     }
   }
 
-  const filteredRows = useMemo(
-    () =>
-      rows.filter(
-        (row) =>
-          row.name.toLowerCase().includes(search.toLowerCase()) ||
-          row.version.toLowerCase().includes(search.toLowerCase()) ||
-          (row.project_name || "").toLowerCase().includes(search.toLowerCase())
-      ),
-    [rows, search]
-  )
+  const { months, maxCount, currentYear } = useMemo(() => {
+    const now = new Date()
+    const year = now.getFullYear()
 
-  const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize))
-  const visibleRows = filteredRows.slice(page * pageSize, page * pageSize + pageSize)
+    const counts = approvedRequests.reduce<Record<string, number>>((acc, request) => {
+      if (!request.reviewed_at) return acc
+      const date = new Date(request.reviewed_at)
+      if (date.getFullYear() !== year) return acc
+      const key = toDayKey(date)
+      acc[key] = (acc[key] || 0) + 1
+      return acc
+    }, {})
 
-  const handleDelete = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this release?")) return
+    const monthBlocks: MonthBlock[] = monthLabels.map((label, monthIndex) => {
+      const monthStart = new Date(year, monthIndex, 1)
+      const monthEnd = new Date(year, monthIndex + 1, 0)
+      const leadingDays = monthStart.getDay()
+      const totalCells = leadingDays + monthEnd.getDate()
+      const totalColumns = Math.ceil(totalCells / 7)
+      const columns: MonthColumn[][] = []
 
-    try {
-      await api.delete(`/releases/${id}`)
-      load()
-    } catch (err) {
-      console.error(err)
-    }
-  }
+      for (let columnIndex = 0; columnIndex < totalColumns; columnIndex += 1) {
+        const column: MonthColumn[] = []
 
-  const handleOpenDialog = (release?: Release) => {
-    if (release) {
-      setEditingRelease(release)
-      setFormData({
-        name: release.name,
-        version: release.version,
-        status: release.status,
-        project_id: release.project_id.toString()
-      })
-    } else {
-      setEditingRelease(null)
-      setFormData({ name: "", version: "", status: "Pending", project_id: "" })
-    }
-    setDialogOpen(true)
-  }
+        for (let rowIndex = 0; rowIndex < 7; rowIndex += 1) {
+          const dayNumber = columnIndex * 7 + rowIndex - leadingDays + 1
 
-  const handleSave = async () => {
-    if (!formData.name || !formData.version || !formData.project_id) {
-      alert("Please fill in all required fields")
-      return
-    }
+          if (dayNumber < 1 || dayNumber > monthEnd.getDate()) {
+            column.push({
+              key: `${label}-${columnIndex}-${rowIndex}`,
+              count: -1,
+              title: ""
+            })
+            continue
+          }
 
-    try {
-      const payload = {
-        name: formData.name,
-        version: formData.version,
-        status: formData.status,
-        project_id: parseInt(formData.project_id, 10)
+          const current = new Date(year, monthIndex, dayNumber)
+          const key = toDayKey(current)
+          const count = counts[key] || 0
+
+          column.push({
+            key,
+            count,
+            title: `${current.toDateString()}: ${count} approved`
+          })
+        }
+
+        columns.push(column)
       }
 
-      if (editingRelease) {
-        await api.put(`/releases/${editingRelease.id}`, payload)
-      } else {
-        await api.post("/releases", payload)
-      }
+      return { label, columns }
+    })
 
-      setDialogOpen(false)
-      load()
-    } catch (err) {
-      console.error(err)
+    const highestCount = Math.max(
+      0,
+      ...monthBlocks.flatMap((month) => month.columns.flat().map((cell) => Math.max(cell.count, 0)))
+    )
+
+    return {
+      months: monthBlocks,
+      maxCount: highestCount,
+      currentYear: year
     }
+  }, [approvedRequests])
+
+  const getHeatColor = (count: number) => {
+    if (count < 0) return "transparent"
+    if (count === 0) return "#2d333b"
+    if (maxCount <= 1) return "#3fb950"
+    const intensity = count / maxCount
+    if (intensity < 0.34) return "#2ea043"
+    if (intensity < 0.67) return "#26a641"
+    return "#39d353"
   }
 
   return (
@@ -172,232 +137,106 @@ export default function Releases() {
           background: "linear-gradient(135deg, rgba(247,242,237,0.98) 0%, rgba(255,251,246,0.98) 100%)"
         }}
       >
-        <Stack direction={{ xs: "column", lg: "row" }} spacing={3} justifyContent="space-between">
-          <Box sx={{ maxWidth: 640 }}>
-            <Typography variant="overline" color="secondary.main" sx={{ letterSpacing: "0.16em" }}>
-              Release timeline
-            </Typography>
-            <Typography variant="h4" sx={{ mt: 0.5 }}>
-              Version tracking that looks sharper and reads faster.
-            </Typography>
-            <Typography color="text.secondary" sx={{ mt: 1.2, lineHeight: 1.7 }}>
-              Releases now sit inside a lighter editorial table with clearer status chips and a calmer data hierarchy.
-            </Typography>
-          </Box>
-
-          <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap">
-            <Paper sx={{ p: 2.5, minWidth: 160, borderRadius: 5, display: "grid", alignContent: "start" }}>
-              <Typography color="text.secondary" fontWeight={700}>
-                Total releases
-              </Typography>
-              <Typography variant="h5" color="primary.main" sx={{ mt: 1 }}>
-                {rows.length}
-              </Typography>
-            </Paper>
-            <Paper sx={{ p: 2.5, minWidth: 160, borderRadius: 5, display: "grid", alignContent: "start" }}>
-              <Typography color="text.secondary" fontWeight={700}>
-                Search results
-              </Typography>
-              <Typography variant="h5" color="secondary.main" sx={{ mt: 1 }}>
-                {filteredRows.length}
-              </Typography>
-            </Paper>
-          </Stack>
-        </Stack>
-      </Paper>
-
-      <Paper sx={{ p: 2.5, borderRadius: 6 }}>
-        <Stack direction={{ xs: "column", md: "row" }} spacing={2} justifyContent="space-between">
-          <TextField
-            placeholder="Search releases, versions, or projects"
-            value={search}
-            onChange={(event) => {
-              setSearch(event.target.value)
-              setPage(0)
-            }}
-            sx={{ minWidth: { xs: "100%", md: 360 } }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchRounded color="action" />
-                </InputAdornment>
-              )
-            }}
-          />
-          <Button variant="contained" startIcon={<AddRounded />} onClick={() => handleOpenDialog()}>
-            Add release
-          </Button>
-        </Stack>
+        <Typography variant="overline" color="secondary.main">
+          Daily progress
+        </Typography>
+        <Typography variant="h4" sx={{ mt: 0.5 }}>
+          Monthly approval heatmap
+        </Typography>
+        <Typography color="text.secondary" sx={{ mt: 1.2, maxWidth: 760 }}>
+          Approval activity for {currentYear}, arranged month by month from Jan to Dec with weekday labels and clear gaps between months.
+        </Typography>
       </Paper>
 
       {loading ? (
-        <Box sx={{ display: "grid", placeItems: "center", minHeight: 240 }}>
+        <Box sx={{ display: "grid", placeItems: "center", minHeight: 260 }}>
           <CircularProgress />
         </Box>
       ) : (
-        <Paper sx={{ borderRadius: 6, overflow: "hidden" }}>
-          <Table sx={{ tableLayout: "fixed" }}>
-            <TableHead>
-              <TableRow sx={{ bgcolor: alpha("#1f4d47", 0.04) }}>
-                <TableCell sx={{ fontWeight: 800 }}>Release</TableCell>
-                <TableCell sx={{ fontWeight: 800 }}>Version</TableCell>
-                <TableCell sx={{ fontWeight: 800 }}>Project</TableCell>
-                <TableCell sx={{ fontWeight: 800 }}>Status</TableCell>
-                <TableCell sx={{ fontWeight: 800 }} align="right">
-                  Actions
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {visibleRows.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} sx={{ py: 8 }}>
-                    <Stack spacing={2} alignItems="center">
-                      <Avatar sx={{ width: 64, height: 64, bgcolor: alpha("#c67c4e", 0.12), color: "secondary.main" }}>
-                        <LocalOfferRounded />
-                      </Avatar>
-                      <Typography variant="h6">No releases found</Typography>
-                      <Typography color="text.secondary">
-                        Try another search term or add the next version to your release stream.
+        <Paper
+          sx={{
+            p: 3,
+            borderRadius: 6,
+            bgcolor: "#161b22",
+            color: "#c9d1d9",
+            overflowX: "auto",
+            overflowY: "hidden"
+          }}
+        >
+          <Stack spacing={2}>
+            <Box sx={{ minWidth: 1220 }}>
+              <Box sx={{ display: "flex", gap: 3.5, ml: "52px", mb: 1.5, alignItems: "flex-end" }}>
+                {months.map((month) => (
+                  <Box key={month.label} sx={{ width: `${month.columns.length * 20}px` }}>
+                    <Typography variant="body2" sx={{ color: "#c9d1d9", fontSize: "0.82rem", whiteSpace: "nowrap" }}>
+                      {month.label}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+
+              <Box sx={{ display: "flex", gap: 2 }}>
+                <Stack spacing="6px" sx={{ pt: 0.25 }}>
+                  {dayLabels.map((day) => (
+                    <Box key={day} sx={{ height: 14, display: "flex", alignItems: "center" }}>
+                      <Typography variant="body2" sx={{ color: "#8b949e", fontSize: "0.72rem" }}>
+                        {day}
                       </Typography>
-                    </Stack>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                visibleRows.map((release) => {
-                  const tone = statusTone[release.status] || "#52606d"
+                    </Box>
+                  ))}
+                </Stack>
 
-                  return (
-                    <TableRow key={release.id} hover>
-                      <TableCell>
-                        <Stack direction="row" spacing={1.5} alignItems="center">
-                          <Avatar sx={{ bgcolor: alpha("#1f4d47", 0.1), color: "primary.main" }}>
-                            <LocalOfferRounded />
-                          </Avatar>
-                          <Box sx={{ minWidth: 0 }}>
-                            <Typography fontWeight={700} sx={{ wordBreak: "break-word" }}>
-                              {release.name}
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              Release #{release.id}
-                            </Typography>
-                          </Box>
+                <Box sx={{ display: "flex", gap: 3.5 }}>
+                  {months.map((month) => (
+                    <Box key={month.label} sx={{ display: "flex", gap: "6px" }}>
+                      {month.columns.map((column, columnIndex) => (
+                        <Stack key={`${month.label}-${columnIndex}`} spacing="6px">
+                          {column.map((cell) => (
+                            <Box
+                              key={cell.key}
+                              title={cell.title}
+                              sx={{
+                                width: 14,
+                                height: 14,
+                                borderRadius: "3px",
+                                bgcolor: getHeatColor(cell.count),
+                                border: cell.count >= 0 ? "1px solid rgba(255,255,255,0.04)" : "none"
+                              }}
+                            />
+                          ))}
                         </Stack>
-                      </TableCell>
-                      <TableCell>
-                        <Chip label={`v${release.version}`} variant="outlined" />
-                      </TableCell>
-                      <TableCell>{release.project_name || "Unknown project"}</TableCell>
-                      <TableCell>
-                        <Chip
-                          label={release.status}
-                          sx={{ bgcolor: alpha(tone, 0.12), color: tone }}
-                        />
-                      </TableCell>
-                      <TableCell align="right">
-                        <Stack direction="row" spacing={1} justifyContent="flex-end" useFlexGap flexWrap="wrap">
-                          <Button variant="text" startIcon={<EditRounded />} onClick={() => handleOpenDialog(release)}>
-                            Edit
-                          </Button>
-                          <Button color="error" variant="text" startIcon={<DeleteOutlineRounded />} onClick={() => handleDelete(release.id)}>
-                            Delete
-                          </Button>
-                        </Stack>
-                      </TableCell>
-                    </TableRow>
-                  )
-                })
-              )}
-            </TableBody>
-          </Table>
+                      ))}
+                    </Box>
+                  ))}
+                </Box>
+              </Box>
+            </Box>
 
-          <Stack
-            direction={{ xs: "column", sm: "row" }}
-            justifyContent="space-between"
-            alignItems={{ xs: "flex-start", sm: "center" }}
-            spacing={1.5}
-            sx={{ p: 2.5 }}
-          >
-            <Typography color="text.secondary">
-              Page {Math.min(page + 1, totalPages)} of {totalPages} ({filteredRows.length} matching releases)
-            </Typography>
-            <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-              <Button
-                variant="outlined"
-                startIcon={<ArrowBackRounded />}
-                onClick={() => setPage((current) => Math.max(current - 1, 0))}
-                disabled={page === 0}
-              >
-                Previous
-              </Button>
-              <Button
-                variant="outlined"
-                endIcon={<ArrowForwardRounded />}
-                onClick={() => setPage((current) => Math.min(current + 1, totalPages - 1))}
-                disabled={page >= totalPages - 1}
-              >
-                Next
-              </Button>
+            <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 1 }}>
+              <Typography variant="body2" sx={{ color: "#8b949e" }}>
+                Less
+              </Typography>
+              {[0, 1, 2, 3].map((level) => (
+                <Box
+                  key={level}
+                  sx={{
+                    width: 14,
+                    height: 14,
+                    borderRadius: "3px",
+                    bgcolor: getHeatColor(level === 0 ? 0 : Math.max(1, Math.ceil((maxCount || 1) * (level / 3))))
+                  }}
+                />
+              ))}
+              <Typography variant="body2" sx={{ color: "#8b949e" }}>
+                More
+              </Typography>
+              <Typography variant="body2" sx={{ color: "#8b949e", ml: 2 }}>
+                Total approvals: {approvedRequests.length}
+              </Typography>
             </Stack>
           </Stack>
         </Paper>
       )}
-
-      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>{editingRelease ? "Edit release" : "Add a new release"}</DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} sx={{ pt: 1 }}>
-            <TextField
-              label="Release name"
-              value={formData.name}
-              onChange={(event) => setFormData({ ...formData, name: event.target.value })}
-              fullWidth
-            />
-            <TextField
-              label="Version"
-              value={formData.version}
-              onChange={(event) => setFormData({ ...formData, version: event.target.value })}
-              fullWidth
-              placeholder="e.g. 2.4.0"
-            />
-            <FormControl fullWidth>
-              <InputLabel>Project</InputLabel>
-              <Select
-                value={formData.project_id}
-                label="Project"
-                onChange={(event) => setFormData({ ...formData, project_id: event.target.value })}
-              >
-                {projects.map((project) => (
-                  <MenuItem key={project.id} value={project.id}>
-                    {project.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <FormControl fullWidth>
-              <InputLabel>Status</InputLabel>
-              <Select
-                value={formData.status}
-                label="Status"
-                onChange={(event) => setFormData({ ...formData, status: event.target.value })}
-              >
-                <MenuItem value="Pending">Pending</MenuItem>
-                <MenuItem value="In Progress">In Progress</MenuItem>
-                <MenuItem value="Completed">Completed</MenuItem>
-                <MenuItem value="Cancelled">Cancelled</MenuItem>
-              </Select>
-            </FormControl>
-          </Stack>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 3 }}>
-          <Button onClick={() => setDialogOpen(false)} color="inherit">
-            Cancel
-          </Button>
-          <Button variant="contained" onClick={handleSave}>
-            {editingRelease ? "Update release" : "Create release"}
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Stack>
   )
 }

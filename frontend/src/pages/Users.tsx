@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { alpha } from "@mui/material/styles"
-import axios from "axios"
+import { api } from "../api"
 import {
   Avatar,
   Box,
@@ -29,6 +29,8 @@ import {
 import {
   AddRounded,
   AdminPanelSettingsRounded,
+  BadgeRounded,
+  DeleteOutlineRounded,
   GroupRounded,
   HowToRegRounded,
   MailOutlineRounded,
@@ -41,9 +43,8 @@ type User = {
   name: string
   email: string
   role: string
+  title: string
 }
-
-const API = "http://127.0.0.1:5000/api"
 
 const roleTone: Record<string, string> = {
   Admin: "#c53030",
@@ -56,7 +57,6 @@ export default function Users() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [editingUser, setEditingUser] = useState<User | null>(null)
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -71,7 +71,8 @@ export default function Users() {
   const loadUsers = async () => {
     try {
       setLoading(true)
-      setUsers([])
+      const response = await api.get("/users")
+      setUsers(response.data)
     } catch (err) {
       console.error(err)
     } finally {
@@ -84,26 +85,12 @@ export default function Users() {
       users.filter(
         (user) =>
           user.name.toLowerCase().includes(search.toLowerCase()) ||
-          user.email.toLowerCase().includes(search.toLowerCase())
+          user.email.toLowerCase().includes(search.toLowerCase()) ||
+          user.role.toLowerCase().includes(search.toLowerCase()) ||
+          user.title.toLowerCase().includes(search.toLowerCase())
       ),
     [users, search]
   )
-
-  const handleOpenDialog = (user?: User) => {
-    if (user) {
-      setEditingUser(user)
-      setFormData({
-        name: user.name,
-        email: user.email,
-        password: "",
-        role: user.role
-      })
-    } else {
-      setEditingUser(null)
-      setFormData({ name: "", email: "", password: "", role: "Worker" })
-    }
-    setDialogOpen(true)
-  }
 
   const handleSave = async () => {
     if (!formData.name || !formData.email || !formData.password) {
@@ -112,18 +99,23 @@ export default function Users() {
     }
 
     try {
-      await axios.post(`${API}/register`, {
-        name: formData.name,
-        email: formData.email,
-        password: formData.password,
-        role: formData.role
-      })
-
+      await api.post("/register", formData)
       setDialogOpen(false)
-      alert("User registered successfully!")
+      setFormData({ name: "", email: "", password: "", role: "Worker" })
+      loadUsers()
     } catch (err: any) {
-      const message = err.response?.data?.message || "Failed to register user"
-      alert(message)
+      alert(err.response?.data?.message || "Failed to register user")
+    }
+  }
+
+  const handleDelete = async (user: User) => {
+    if (!confirm(`Remove ${user.name} from the system?`)) return
+
+    try {
+      await api.delete(`/users/${user.id}`)
+      loadUsers()
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Failed to remove user")
     }
   }
 
@@ -138,6 +130,9 @@ export default function Users() {
     }
   }
 
+  const managers = users.filter((user) => user.role === "Manager").length
+  const workers = users.filter((user) => user.role === "Worker").length
+
   return (
     <Stack spacing={3}>
       <Paper
@@ -148,36 +143,46 @@ export default function Users() {
         }}
       >
         <Stack direction={{ xs: "column", lg: "row" }} spacing={3} justifyContent="space-between">
-          <Box sx={{ maxWidth: 640 }}>
-            <Typography variant="overline" color="primary.main" sx={{ letterSpacing: "0.16em" }}>
-              People and roles
+          <Box sx={{ maxWidth: 660 }}>
+            <Typography variant="overline" color="primary.main">
+              Team directory
             </Typography>
             <Typography variant="h4" sx={{ mt: 0.5 }}>
-              User management with a more welcoming administrative feel.
+              View every stored member with their role title.
             </Typography>
-            <Typography color="text.secondary" sx={{ mt: 1.2, lineHeight: 1.7 }}>
-              This page is styled to feel less bare while keeping the current backend constraints intact.
+            <Typography color="text.secondary" sx={{ mt: 1.2 }}>
+              The admin page now loads real members from the database and shows workers, managers, and admins clearly in one list.
             </Typography>
           </Box>
 
-          <Paper sx={{ p: 2.5, borderRadius: 5, minWidth: 180, display: "grid", alignContent: "start" }}>
-            <Typography color="text.secondary" fontWeight={700}>
-              Directory size
-            </Typography>
-            <Typography variant="h5" color="primary.main" sx={{ mt: 1 }}>
-              {users.length}
-            </Typography>
-          </Paper>
+          <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap">
+            <Paper sx={{ p: 2.5, borderRadius: 5, minWidth: 170, minHeight: 126, display: "grid", alignContent: "start" }}>
+              <Typography color="text.secondary" fontWeight={700}>
+                Total members
+              </Typography>
+              <Typography variant="h5" color="primary.main" sx={{ mt: 1 }}>
+                {users.length}
+              </Typography>
+            </Paper>
+            <Paper sx={{ p: 2.5, borderRadius: 5, minWidth: 170, minHeight: 126, display: "grid", alignContent: "start" }}>
+              <Typography color="text.secondary" fontWeight={700}>
+                Managers / Workers
+              </Typography>
+              <Typography variant="h5" color="secondary.main" sx={{ mt: 1 }}>
+                {managers} / {workers}
+              </Typography>
+            </Paper>
+          </Stack>
         </Stack>
       </Paper>
 
-      <Paper sx={{ p: 2.5, borderRadius: 6 }}>
-        <Stack direction={{ xs: "column", md: "row" }} spacing={2} justifyContent="space-between">
+      <Paper sx={{ p: 2.5, borderRadius: 6, minHeight: 102, display: "flex", alignItems: "center" }}>
+        <Stack direction={{ xs: "column", md: "row" }} spacing={2} justifyContent="space-between" sx={{ width: "100%" }}>
           <TextField
-            placeholder="Search users"
+            placeholder="Search members, role, or title"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            sx={{ minWidth: { xs: "100%", md: 320 } }}
+            sx={{ minWidth: { xs: "100%", md: 340 } }}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -186,8 +191,8 @@ export default function Users() {
               )
             }}
           />
-          <Button variant="contained" startIcon={<AddRounded />} onClick={() => handleOpenDialog()}>
-            Add user
+          <Button variant="contained" startIcon={<AddRounded />} onClick={() => setDialogOpen(true)}>
+            Add member
           </Button>
         </Stack>
       </Paper>
@@ -196,15 +201,19 @@ export default function Users() {
         <Table sx={{ tableLayout: "fixed" }}>
           <TableHead>
             <TableRow sx={{ bgcolor: alpha("#1f4d47", 0.04) }}>
-              <TableCell sx={{ fontWeight: 800 }}>User</TableCell>
+              <TableCell sx={{ fontWeight: 800 }}>Member</TableCell>
               <TableCell sx={{ fontWeight: 800 }}>Email</TableCell>
               <TableCell sx={{ fontWeight: 800 }}>Role</TableCell>
+              <TableCell sx={{ fontWeight: 800 }}>Title</TableCell>
+              <TableCell sx={{ fontWeight: 800 }} align="right">
+                Actions
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={3} sx={{ py: 8 }}>
+                <TableCell colSpan={5} sx={{ py: 8 }}>
                   <Stack alignItems="center">
                     <CircularProgress />
                   </Stack>
@@ -212,14 +221,14 @@ export default function Users() {
               </TableRow>
             ) : filteredUsers.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={3} sx={{ py: 8 }}>
+                <TableCell colSpan={5} sx={{ py: 8 }}>
                   <Stack spacing={2} alignItems="center">
-                    <Avatar sx={{ width: 64, height: 64, bgcolor: alpha("#1f4d47", 0.1), color: "primary.main" }}>
+                    <Avatar sx={{ width: 60, height: 60, bgcolor: alpha("#1f4d47", 0.1), color: "primary.main" }}>
                       <GroupRounded />
                     </Avatar>
-                    <Typography variant="h6">No users found</Typography>
+                    <Typography variant="h6">No members found</Typography>
                     <Typography color="text.secondary" textAlign="center">
-                      The current UI can register users, but this backend does not yet provide a user list endpoint to display existing accounts.
+                      Add a member or search with a different name, role, or title.
                     </Typography>
                   </Stack>
                 </TableCell>
@@ -232,7 +241,7 @@ export default function Users() {
                   <TableRow key={user.id} hover>
                     <TableCell>
                       <Stack direction="row" spacing={1.5} alignItems="center">
-                        <Avatar sx={{ bgcolor: alpha(tone, 0.12), color: tone }}>
+                        <Avatar sx={{ bgcolor: alpha(tone, 0.12), color: tone, width: 42, height: 42 }}>
                           {user.name.charAt(0).toUpperCase()}
                         </Avatar>
                         <Typography fontWeight={700} sx={{ wordBreak: "break-word" }}>
@@ -248,6 +257,22 @@ export default function Users() {
                         sx={{ bgcolor: alpha(tone, 0.12), color: tone }}
                       />
                     </TableCell>
+                    <TableCell>
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <BadgeRounded sx={{ color: "secondary.main", fontSize: 18 }} />
+                        <Typography>{user.title}</Typography>
+                      </Stack>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Button
+                        color="error"
+                        variant="text"
+                        startIcon={<DeleteOutlineRounded />}
+                        onClick={() => handleDelete(user)}
+                      >
+                        Remove
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 )
               })
@@ -257,7 +282,7 @@ export default function Users() {
       </Paper>
 
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>{editingUser ? "Edit user" : "Register a new user"}</DialogTitle>
+        <DialogTitle>Register a new member</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ pt: 1 }}>
             <TextField
@@ -293,7 +318,6 @@ export default function Users() {
               value={formData.password}
               onChange={(event) => setFormData({ ...formData, password: event.target.value })}
               fullWidth
-              helperText={editingUser ? "Leave blank to keep the current password." : ""}
             />
             <FormControl fullWidth>
               <InputLabel>Role</InputLabel>
@@ -314,7 +338,7 @@ export default function Users() {
             Cancel
           </Button>
           <Button variant="contained" onClick={handleSave}>
-            {editingUser ? "Update user" : "Register user"}
+            Register member
           </Button>
         </DialogActions>
       </Dialog>

@@ -53,7 +53,11 @@ class Release(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     version = db.Column(db.String(50), nullable=False)
-    status = db.Column(db.String(50), default="Pending")
+    status = db.Column(db.String(50), default="Pending Approval")
+    requested_by = db.Column(db.Integer, db.ForeignKey("users.id"))
+    requested_at = db.Column(db.DateTime, server_default=db.func.now())
+    approved_by = db.Column(db.Integer, db.ForeignKey("users.id"))
+    approved_at = db.Column(db.DateTime)
 
     # ⭐ MUST NOT BE NULL (prevents Unknown)
     project_id = db.Column(
@@ -69,6 +73,9 @@ class Release(db.Model):
         lazy=True
     )
 
+    requester = db.relationship("User", foreign_keys=[requested_by], lazy="joined")
+    approver = db.relationship("User", foreign_keys=[approved_by], lazy="joined")
+
     def __repr__(self):
         return f"<Release {self.name} {self.version}>"
 
@@ -81,7 +88,14 @@ class Task(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
-    status = db.Column(db.String(50), default="Open")
+    product = db.Column(db.String(200))
+    quantity = db.Column(db.Integer, default=1)
+    reason = db.Column(db.Text)
+    status = db.Column(db.String(50), default="Pending")
+    requested_by = db.Column(db.Integer, db.ForeignKey("users.id"))
+    requested_at = db.Column(db.DateTime, server_default=db.func.now())
+    manager_comment = db.Column(db.Text)
+    reviewed_at = db.Column(db.DateTime)
 
     assigned_to = db.Column(db.Integer, db.ForeignKey("users.id"))
 
@@ -91,5 +105,7 @@ class Task(db.Model):
         nullable=False
     )
 
+    requester = db.relationship("User", foreign_keys=[requested_by], lazy="joined")
+
     def __repr__(self):
-        return f"<Task {self.title}>"
+        return f"<Task {self.product or self.title}>"

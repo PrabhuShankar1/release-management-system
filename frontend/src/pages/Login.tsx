@@ -85,10 +85,10 @@ export default function Login() {
       >
         <Paper
           sx={{
-            p: 5,
+            p: 4.5,
             borderRadius: 8,
             width: "100%",
-            minHeight: 560,
+            minHeight: 520,
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
@@ -112,7 +112,7 @@ export default function Login() {
               label="Release operations"
               sx={{ bgcolor: "rgba(255,255,255,0.12)", color: "white", mb: 3 }}
             />
-            <Typography variant="h3" sx={{ maxWidth: 560 }}>
+            <Typography variant="h4" sx={{ maxWidth: 520 }}>
               Elegant release management starts with a calmer workspace.
             </Typography>
             <Typography sx={{ mt: 2, maxWidth: 540, color: "rgba(255,255,255,0.8)", lineHeight: 1.8 }}>
@@ -138,14 +138,14 @@ export default function Login() {
                   px: 2.5,
                   py: 2,
                   borderRadius: 5,
-                  minWidth: 180,
+                  minWidth: 168,
                   bgcolor: "rgba(255,255,255,0.1)",
                   color: "white",
                   border: "1px solid rgba(255,255,255,0.1)"
                 }}
               >
                 <Stack direction="row" spacing={1.5} alignItems="center">
-                  <Avatar sx={{ bgcolor: "rgba(255,255,255,0.14)", color: "white", width: 40, height: 40 }}>
+                  <Avatar sx={{ bgcolor: "rgba(255,255,255,0.14)", color: "white", width: 36, height: 36 }}>
                     {item.icon}
                   </Avatar>
                   <Typography fontWeight={700}>{item.title}</Typography>
@@ -178,8 +178,8 @@ export default function Login() {
         >
           <Avatar
             sx={{
-              width: 64,
-              height: 64,
+              width: 56,
+              height: 56,
               mb: 2.5,
               bgcolor: "secondary.main",
               color: "white",
@@ -189,7 +189,7 @@ export default function Login() {
             <RocketLaunchRounded />
           </Avatar>
 
-          <Typography variant="h4" sx={{ maxWidth: 320 }}>
+          <Typography variant="h5" sx={{ maxWidth: 320 }}>
             Welcome back
           </Typography>
           <Typography color="text.secondary" sx={{ mt: 1, mb: 3 }}>

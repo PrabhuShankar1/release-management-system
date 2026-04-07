@@ -48,37 +48,38 @@ import RoleProtectedRoute from "./ProtectedRoute"
 import { logout, getRole, isLoggedIn, getUser } from "./auth"
 
 const drawerWidth = 300
+const navIconSx = { fontSize: 22 }
 
 const menuItems = [
   {
     text: "Dashboard",
     path: "/dashboard",
     roles: ["Admin"],
-    icon: <DashboardRounded />
+    icon: <DashboardRounded sx={navIconSx} />
   },
   {
     text: "Users",
     path: "/users",
     roles: ["Admin"],
-    icon: <GroupsRounded />
+    icon: <GroupsRounded sx={navIconSx} />
   },
   {
     text: "Projects",
     path: "/projects",
     roles: ["Admin", "Manager"],
-    icon: <FolderRounded />
+    icon: <FolderRounded sx={navIconSx} />
   },
   {
     text: "Releases",
     path: "/releases",
     roles: ["Admin", "Manager"],
-    icon: <RocketLaunchRounded />
+    icon: <RocketLaunchRounded sx={navIconSx} />
   },
   {
     text: "Tasks",
     path: "/tasks",
     roles: ["Admin", "Manager", "Worker"],
-    icon: <AssignmentTurnedInRounded />
+    icon: <AssignmentTurnedInRounded sx={navIconSx} />
   }
 ]
 
@@ -156,7 +157,7 @@ function ShellNavigation({
             <Typography variant="overline" sx={{ color: "rgba(255,255,255,0.72)", letterSpacing: "0.16em" }}>
               Release Suite
             </Typography>
-            <Typography variant="h6" sx={{ lineHeight: 1.15 }}>
+              <Typography variant="h6" sx={{ lineHeight: 1.15 }}>
               RMS Workspace
             </Typography>
           </Box>
@@ -204,7 +205,7 @@ function ShellNavigation({
               <ListItemIcon sx={{ minWidth: 40, color: "inherit" }}>{item.icon}</ListItemIcon>
               <ListItemText
                 primary={item.text}
-                primaryTypographyProps={{ fontWeight: 700 }}
+                primaryTypographyProps={{ fontWeight: 700, fontSize: "0.96rem" }}
               />
             </ListItemButton>
           )
@@ -372,8 +373,8 @@ function AppLayout() {
                 <IconButton onClick={(event) => setAnchorEl(event.currentTarget)} sx={{ p: 0 }}>
                   <Avatar
                     sx={{
-                      width: 44,
-                      height: 44,
+                      width: 40,
+                      height: 40,
                       bgcolor: "secondary.main",
                       color: "#fff7ef",
                       fontWeight: 800

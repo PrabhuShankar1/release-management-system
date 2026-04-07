@@ -180,7 +180,7 @@ export default function Dashboard() {
           justifyContent="space-between"
           sx={{ position: "relative" }}
         >
-          <Box>
+          <Box sx={{ maxWidth: 640 }}>
             <Chip
               label="Operational snapshot"
               sx={{
@@ -189,7 +189,7 @@ export default function Dashboard() {
                 color: "white"
               }}
             />
-            <Typography variant="h3" sx={{ maxWidth: 620 }}>
+            <Typography variant="h4" sx={{ maxWidth: 620 }}>
               Delivery looks clearer when your numbers have room to breathe.
             </Typography>
             <Typography sx={{ mt: 1.5, maxWidth: 620, color: "rgba(255,255,255,0.82)", lineHeight: 1.7 }}>
@@ -200,6 +200,7 @@ export default function Dashboard() {
           <Paper
             sx={{
               minWidth: { xs: "100%", md: 280 },
+              minHeight: 156,
               p: 3,
               borderRadius: 6,
               bgcolor: "rgba(255,255,255,0.12)",
@@ -210,7 +211,7 @@ export default function Dashboard() {
           >
             <Stack spacing={1.5}>
               <Stack direction="row" spacing={1.5} alignItems="center">
-                <Avatar sx={{ bgcolor: "rgba(255,255,255,0.16)" }}>
+                <Avatar sx={{ bgcolor: "rgba(255,255,255,0.16)", width: 44, height: 44 }}>
                   <TrendingUpRounded />
                 </Avatar>
                 <Box>
@@ -237,9 +238,9 @@ export default function Dashboard() {
       >
         {statCards.map((card) => (
           <Card key={card.title}>
-            <CardContent sx={{ p: 3 }}>
-              <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
-                <Box>
+            <CardContent sx={{ p: 3, height: "100%" }}>
+              <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ height: "100%" }}>
+                <Box sx={{ display: "flex", flexDirection: "column", justifyContent: "space-between", minHeight: 96 }}>
                   <Typography color="text.secondary" fontWeight={700}>
                     {card.title}
                   </Typography>
@@ -254,8 +255,8 @@ export default function Dashboard() {
                   sx={{
                     bgcolor: alpha(card.color, 0.12),
                     color: card.color,
-                    width: 52,
-                    height: 52
+                    width: 46,
+                    height: 46
                   }}
                 >
                   {card.icon}
@@ -365,9 +366,9 @@ export default function Dashboard() {
           gridTemplateColumns: { xs: "1fr", md: "repeat(2, 1fr)" }
         }}
       >
-        <Paper sx={{ p: 3, borderRadius: 6 }}>
+        <Paper sx={{ p: 3, borderRadius: 6, minHeight: 120, display: "flex", alignItems: "center" }}>
           <Stack direction="row" spacing={2} alignItems="center">
-            <Avatar sx={{ bgcolor: alpha("#c98633", 0.14), color: "#c98633", width: 52, height: 52 }}>
+            <Avatar sx={{ bgcolor: alpha("#c98633", 0.14), color: "#c98633", width: 46, height: 46 }}>
               <PendingActionsRounded />
             </Avatar>
             <Box>
@@ -379,9 +380,9 @@ export default function Dashboard() {
           </Stack>
         </Paper>
 
-        <Paper sx={{ p: 3, borderRadius: 6 }}>
+        <Paper sx={{ p: 3, borderRadius: 6, minHeight: 120, display: "flex", alignItems: "center" }}>
           <Stack direction="row" spacing={2} alignItems="center">
-            <Avatar sx={{ bgcolor: alpha("#2b6cb0", 0.14), color: "#2b6cb0", width: 52, height: 52 }}>
+            <Avatar sx={{ bgcolor: alpha("#2b6cb0", 0.14), color: "#2b6cb0", width: 46, height: 46 }}>
               <ScheduleRounded />
             </Avatar>
             <Box>
