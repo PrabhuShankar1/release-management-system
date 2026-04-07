@@ -1,9 +1,27 @@
+import os
+
 from flask import Flask
 from flask_cors import CORS
 from sqlalchemy import inspect, text
 
 from .extensions import db
 from .routes import routes
+
+
+def get_database_uri(app: Flask):
+    database_url = os.getenv("DATABASE_URL")
+
+    if database_url:
+        if database_url.startswith("postgres://"):
+            return database_url.replace("postgres://", "postgresql://", 1)
+        return database_url
+
+    if os.getenv("VERCEL"):
+        # Vercel functions can write only to temporary storage.
+        return "sqlite:////tmp/rms.db"
+
+    os.makedirs(app.instance_path, exist_ok=True)
+    return f"sqlite:///{os.path.join(app.instance_path, 'rms.db')}"
 
 
 def ensure_release_columns():
@@ -63,7 +81,7 @@ def ensure_task_columns():
 def create_app():
     app = Flask(__name__)
 
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///rms.db"
+    app.config["SQLALCHEMY_DATABASE_URI"] = get_database_uri(app)
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     db.init_app(app)

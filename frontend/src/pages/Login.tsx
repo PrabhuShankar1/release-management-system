@@ -24,7 +24,7 @@ import {
   VisibilityOff
 } from "@mui/icons-material"
 import { useNavigate } from "react-router-dom"
-import axios from "axios"
+import { api } from "../api"
 import { useAuth } from "../context/AuthContext"
 
 export default function Login() {
@@ -46,7 +46,7 @@ export default function Login() {
     setError("")
 
     try {
-      const res = await axios.post("http://127.0.0.1:5000/api/login", {
+      const res = await api.post("/login", {
         email,
         password
       })

@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
 import { alpha } from "@mui/material/styles"
-import axios from "axios"
 import {
   Avatar,
   Box,
@@ -47,8 +46,6 @@ type ApprovedRequest = {
   requested_by?: number | null
   reviewed_at?: string | null
 }
-
-const API = "http://127.0.0.1:5000/api/projects"
 
 const formatDateTime = (value?: string | null) => {
   if (!value) return "No approval time"
@@ -227,7 +224,7 @@ export default function Projects() {
   const loadProjects = async () => {
     try {
       setLoading(true)
-      const res = await axios.get(API)
+      const res = await api.get("/projects")
       setProjects(res.data)
     } catch (err) {
       console.error(err)
@@ -267,9 +264,9 @@ export default function Projects() {
 
     try {
       if (editingProject) {
-        await axios.put(`${API}/${editingProject.id}`, { name, description })
+        await api.put(`/projects/${editingProject.id}`, { name, description })
       } else {
-        await axios.post(API, { name, description })
+        await api.post("/projects", { name, description })
       }
 
       setDialogOpen(false)
@@ -286,7 +283,7 @@ export default function Projects() {
     if (!confirm("Delete this project?")) return
 
     try {
-      await axios.delete(`${API}/${id}`)
+      await api.delete(`/projects/${id}`)
       loadProjects()
     } catch (err) {
       console.error(err)
