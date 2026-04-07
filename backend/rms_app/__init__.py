@@ -78,6 +78,21 @@ def ensure_task_columns():
         db.session.execute(text("UPDATE tasks SET quantity = 1 WHERE quantity IS NULL"))
 
 
+def ensure_default_admin():
+    from .models import User
+
+    if User.query.first():
+        return
+
+    admin = User(
+        name=os.getenv("DEFAULT_ADMIN_NAME", "Admin"),
+        email=os.getenv("DEFAULT_ADMIN_EMAIL", "admin@rms.local"),
+        role=os.getenv("DEFAULT_ADMIN_ROLE", "Admin"),
+    )
+    admin.set_password(os.getenv("DEFAULT_ADMIN_PASSWORD", "Admin@123"))
+    db.session.add(admin)
+
+
 def create_app():
     app = Flask(__name__)
 
@@ -92,6 +107,7 @@ def create_app():
             db.create_all()
             ensure_release_columns()
             ensure_task_columns()
+            ensure_default_admin()
             db.session.commit()
         except Exception:
             db.session.rollback()
