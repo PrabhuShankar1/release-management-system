@@ -3,8 +3,8 @@ from datetime import datetime
 from flask import Blueprint, jsonify, request
 from sqlalchemy.orm import joinedload
 
-from app.extensions import db
-from app.models import Project, Release, Task, User
+from rms_app.extensions import db
+from rms_app.models import Project, Release, Task, User
 
 routes = Blueprint("routes", __name__)
 

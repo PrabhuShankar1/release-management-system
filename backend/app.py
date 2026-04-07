@@ -1,4 +1,4 @@
-from app import app
+from rms_app import app
 
 
 @app.route("/")
