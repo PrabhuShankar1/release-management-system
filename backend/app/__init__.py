@@ -88,10 +88,14 @@ def create_app():
     CORS(app)
 
     with app.app_context():
-        db.create_all()
-        ensure_release_columns()
-        ensure_task_columns()
-        db.session.commit()
+        try:
+            db.create_all()
+            ensure_release_columns()
+            ensure_task_columns()
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            app.logger.exception("Database initialization failed during app startup.")
 
     app.register_blueprint(routes)
 
