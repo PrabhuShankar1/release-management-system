@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react"
 import {
-  BrowserRouter,
+  HashRouter,
   Routes,
   Route,
   Navigate,
@@ -255,7 +255,7 @@ function AppLayout() {
   const handleLogout = () => {
     setAnchorEl(null)
     logout()
-    window.location.href = "/login"
+    navigate("/login", { replace: true })
   }
 
   if (!isLoggedIn()) {
@@ -496,12 +496,12 @@ function AppLayout() {
 
 function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/*" element={<AppLayout />} />
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   )
 }
 

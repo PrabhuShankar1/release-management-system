@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="620" viewBox="0 0 1100 620" role="img" aria-labelledby="title desc">
+  <title id="title">Backend File Structure</title>
+  <desc id="desc">Diagram showing the file structure inside the backend folder.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#eef4fb" />
+      <stop offset="100%" stop-color="#fffdf9" />
+    </linearGradient>
+  </defs>
+  <rect width="1100" height="620" rx="28" fill="url(#bg)" />
+  <rect x="34" y="34" width="1032" height="552" rx="24" fill="#ffffff" stroke="#d6dde8" stroke-width="2" />
+  <text x="70" y="96" font-family="Segoe UI, Arial, sans-serif" font-size="34" font-weight="700" fill="#204b77">Backend Folder Structure</text>
+  <text x="70" y="128" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#6b7280">Current structure inside /backend</text>
+  <rect x="64" y="156" width="970" height="390" rx="18" fill="#151b23" />
+  <text xml:space="preserve" x="96" y="206" font-family="Consolas, 'Courier New', monospace" font-size="20" fill="#e5eef9">
+backend
+├── app.py
+├── package-lock.json
+├── package.json
+├── requirements.txt
+├── app
+│   ├── __init__.py
+│   ├── extensions.py
+│   ├── models.py
+│   └── routes.py
+└── instance
+    └── rms.db
+  </text>
+</svg>

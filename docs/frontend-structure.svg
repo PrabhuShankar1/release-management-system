@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="980" viewBox="0 0 1200 980" role="img" aria-labelledby="title desc">
+  <title id="title">Frontend File Structure</title>
+  <desc id="desc">Diagram showing the file structure inside the frontend folder.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f5efe7" />
+      <stop offset="100%" stop-color="#fffdf9" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="980" rx="28" fill="url(#bg)" />
+  <rect x="34" y="34" width="1132" height="912" rx="24" fill="#ffffff" stroke="#d8cec2" stroke-width="2" />
+  <text x="70" y="96" font-family="Segoe UI, Arial, sans-serif" font-size="34" font-weight="700" fill="#1f4d47">Frontend Folder Structure</text>
+  <text x="70" y="128" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#6b7280">Current structure inside /frontend</text>
+  <rect x="64" y="156" width="1070" height="758" rx="18" fill="#17212b" />
+  <text xml:space="preserve" x="96" y="206" font-family="Consolas, 'Courier New', monospace" font-size="20" fill="#e5eef9">
+frontend
+├── README.md
+├── eslint.config.js
+├── index.html
+├── package-lock.json
+├── package.json
+├── tsconfig.app.json
+├── tsconfig.json
+├── tsconfig.node.json
+├── vite.config.ts
+├── public
+│   └── vite.svg
+└── src
+    ├── App.css
+    ├── App.tsx
+    ├── ProtectedRoute.tsx
+    ├── api.ts
+    ├── auth.ts
+    ├── index.css
+    ├── main.tsx
+    ├── theme.ts
+    ├── assets
+    │   └── react.svg
+    ├── components
+    │   ├── Navbar.tsx
+    │   └── SidebarLayout.tsx
+    ├── context
+    │   └── AuthContext.tsx
+    ├── pages
+    │   ├── Dashboard.tsx
+    │   ├── Login.tsx
+    │   ├── Projects.css
+    │   ├── Projects.tsx
+    │   ├── Releases.css
+    │   ├── Releases.tsx
+    │   ├── Tasks.css
+    │   ├── Tasks.tsx
+    │   └── Users.tsx
+    └── services
+        └── api.ts
+  </text>
+</svg>
