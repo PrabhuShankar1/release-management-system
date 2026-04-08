@@ -54,10 +54,10 @@ export default function Login() {
       login(res.data.user)
       navigate("/tasks")
     } catch (err: any) {
-      const message =
-        err.response?.data?.message ||
-        (err.code === "ERR_NETWORK"
-          ? "Cannot reach the server right now. Please wait a moment and try again."
+      const backendUrl = `${api.defaults.baseURL || ""}/login`
+      const message = err.response?.data?.message
+        || (!err.response
+          ? `Cannot reach the server right now. Check the backend URL: ${backendUrl}`
           : "Login failed. Please try again.")
       setError(message)
     } finally {
